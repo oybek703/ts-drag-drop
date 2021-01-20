@@ -1,5 +1,6 @@
-const button = <HTMLButtonElement>document.getElementById('myBtn')
+function merge <T extends object, U extends object> (o1: T, o2: U) {
+    return Object.assign(o1, o2)
+}
 
-button.addEventListener('click', function (event) {
-    console.log(event.target)
-})
+const merged = merge({name: 'Oybek'}, {age: 21})
+console.log(merged.name)

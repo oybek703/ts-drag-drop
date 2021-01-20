@@ -1,6 +1,7 @@
 "use strict";
-var button = document.getElementById('myBtn');
-button.addEventListener('click', function (event) {
-    console.log(event.target);
-});
+function merge(o1, o2) {
+    return Object.assign(o1, o2);
+}
+var merged = merge({ name: 'Oybek' }, { age: 21 });
+console.log(merged.name);
 //# sourceMappingURL=app.js.map
