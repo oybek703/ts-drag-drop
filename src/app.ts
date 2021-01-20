@@ -1,10 +1,15 @@
-const btn =  document.querySelector('button')!
-//my comment
-btn.addEventListener('click', async event => {
-    const result = await new Promise(resolve => {
-        setTimeout(() => {
-            resolve('Asynchronous task!')
-        }, 2000)
-    })
-    console.log(result)
-})
+interface Greetable {
+    name: string
+    greet(phrase: string): void
+}
+
+class Human implements Greetable {
+    constructor(public name:string) {
+    }
+    greet(phrase: string) {
+        console.log(`Hi, my name is ${this.name}`)
+    }
+}
+
+const human1: Greetable = new Human('Oybek')
+console.log(human1)
