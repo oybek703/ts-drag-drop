@@ -1,15 +1,30 @@
-interface Greetable {
-    name: string
+interface Named {
+    name?: string
+}
+
+interface Greetable extends Named{
+    name?: string
     greet(phrase: string): void
 }
 
 class Human implements Greetable {
-    constructor(public name:string) {
+    constructor(public name?: string) {
+        if(name) {
+            this.name = name
+        }
     }
     greet(phrase: string) {
-        console.log(`Hi, my name is ${this.name}`)
+        if(this.name) {
+            console.log(`Hi, my name is ${this.name}`)
+        } else {
+            console.log('Hi.')
+        }
     }
 }
 
+const human = new Human('Oybek')
+
 const human1: Greetable = new Human('Oybek')
-console.log(human1)
+const human2: Greetable = new Human('Husen')
+
+human2.greet('hi')
