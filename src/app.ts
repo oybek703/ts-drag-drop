@@ -1,6 +1,15 @@
-function merge <T extends object, U extends object> (o1: T, o2: U) {
-    return Object.assign(o1, o2)
+
+function Logger (cons: Function) {
+    console.log('Logging...')
+    console.log(cons)
 }
 
-const merged = merge({name: 'Oybek'}, {age: 21})
-console.log(merged.name)
+@Logger
+class Human {
+    constructor(public name: string = 'Oybek') {
+        console.log('Constructor method running...')
+    }
+}
+
+const h1 = new Human()
+console.log(h1)
