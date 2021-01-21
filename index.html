@@ -9,8 +9,8 @@
 </head>
 <body>
     <template id="project-form">
-        <form>
-            <div class="row">
+        <form class="card">
+            <div class="row card-content">
                 <div class="input-field col s12">
                     <input type="text" id="title" placeholder="Title" autocomplete="off">
                 </div>
@@ -18,13 +18,25 @@
                     <input type="text" id="description" placeholder="Description">
                 </div>
                 <div class="input-field col s12">
-                    <input type="number" placeholder="People" id="people">
+                    <input type="number" autocomplete="off" placeholder="People" id="people">
                 </div>
                 <div class="col s12">
                     <button class="btn btn-small">Add Course</button>
                 </div>
             </div>
         </form>
+    </template>
+    <template id="active-projects-list">
+        <ul class="collection with-header">
+            <li class="collection-header center green white-text title">ACTIVE PROJECTS</li>
+            <li class="collection-item"> </li>
+        </ul>
+    </template>
+    <template id="finished-projects-list">
+        <ul class="collection with-header">
+            <li class="collection-header center grey white-text title">FINISHED PROJECTS</li>
+            <li class="collection-item"> </li>
+        </ul>
     </template>
     <div id="app" class="container"></div>
 <script src="dist/app.js"></script>
