@@ -2,11 +2,7 @@
   "name": "y",
   "version": "1.0.0",
   "description": "typescript basics",
-<<<<<<< HEAD
   "main": "src/app.js",
-=======
-  "main": "app.js",
->>>>>>> types
   "scripts": {
     "dev": "lite-server"
   },
@@ -15,5 +11,8 @@
     "js"
   ],
   "author": "Oybek",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "materialize-css": "^1.0.0-rc.2"
+  }
 }
