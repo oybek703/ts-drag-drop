@@ -8,10 +8,25 @@
     <title>Typescript Drag and Drop</title>
 </head>
 <body>
-<div id="app" class="container">
-    <button class="btn">Click</button>
-    <template>it is template</template>
-</div>
+    <template id="project-form">
+        <form>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input type="text" id="title" placeholder="Title" autocomplete="off">
+                </div>
+                <div class="input-field col s12">
+                    <input type="text" id="description" placeholder="Description">
+                </div>
+                <div class="input-field col s12">
+                    <input type="number" placeholder="People" id="people">
+                </div>
+                <div class="col s12">
+                    <button class="btn btn-small">Add Course</button>
+                </div>
+            </div>
+        </form>
+    </template>
+    <div id="app" class="container"></div>
 <script src="dist/app.js"></script>
 </body>
 </html>
