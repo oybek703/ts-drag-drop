@@ -1,15 +1,5 @@
-
-function Logger (cons: Function) {
-    console.log('Logging...')
-    console.log(cons)
-}
-
-@Logger
-class Human {
-    constructor(public name: string = 'Oybek') {
-        console.log('Constructor method running...')
+function inifinite(): never {
+    while (true) {
+        console.log('it is true!')
     }
 }
-
-const h1 = new Human()
-console.log(h1)
