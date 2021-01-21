@@ -38,21 +38,68 @@ function autobind(_: any, _1: string, descriptor: PropertyDescriptor) {
     }
 }
 
+enum ProjectStatus {ACTIVE= 'active', FINISHED = 'finished' }
+
+class Project {
+    constructor(public id: number, public title: string, public description: string, public numberOfPeople: number, public status: ProjectStatus) {}
+}
+
+type Listener = (projects: Project[]) => void
+
+class ProjectState {
+    private projects: Project[] = []
+    private listeners: Listener[] = []
+    private static instance: ProjectState
+
+    constructor() {}
+
+    static getInstance() {
+        if(this.instance) {
+            return this.instance
+        }
+        this.instance = new ProjectState()
+        return this.instance
+    }
+
+    addProject(title: string, description: string, numberOfPeople: number) {
+        this.projects.push(new Project(new Date().getTime(), title, description, numberOfPeople, ProjectStatus.ACTIVE))
+        for (const listener of this.listeners) {
+            listener(this.projects.slice())
+        }
+    }
+
+    addListener(listener: Listener) {
+        this.listeners.push(listener)
+    }
+}
+
+const projectState = ProjectState.getInstance()
+
 class ProjectsList {
     templateElement: HTMLTemplateElement
     hostElement: HTMLDivElement
     element: HTMLElement
+    assignedProjects: Project[] = []
 
-    constructor(private type: 'active' | 'finished') {
+    constructor(private type: ProjectStatus.ACTIVE | ProjectStatus.FINISHED) {
         this.templateElement = document.getElementById(`${this.type}-projects-list`) as HTMLTemplateElement
         this.hostElement = document.getElementById('app') as HTMLDivElement
         const importedNode = document.importNode(this.templateElement.content, true)
         this.element = importedNode.firstElementChild as HTMLElement
         this.attach()
+        projectState.addListener((newProjects: Project[]) => {
+            this.assignedProjects = newProjects.filter(p => this.type === p.status)
+            this.renderProjects()
+        })
     }
 
     private attach() {
         this.hostElement.insertAdjacentElement('beforeend', this.element)
+    }
+
+    private renderProjects() {
+        // this.element.childNodes.forEach((childNode,     i) => i !== 1 && childNode.remove())
+        this.assignedProjects.forEach(project => this.element.insertAdjacentHTML('beforeend', `<li class="collection-item">${project.title}</li>`))
     }
 }
 
@@ -84,7 +131,7 @@ class ProjectInput {
         const descriptionValidateable: Validateable = {value: descriptionValue, minLength: 5}
         const peopleValidateable: Validateable = {value: +peopleValue, min: 1, max: 5}
         if(!validate(titleValidateable) || !validate(descriptionValidateable) || !validate(peopleValidateable)) {
-            alert('Invalid User Input!')
+            alert('Please fill the form with valid information!')
             return
         } else {
             return [titleValue, descriptionValue, +peopleValue]
@@ -103,8 +150,9 @@ class ProjectInput {
         const userInputs = this.getUserInputs()
         if(Array.isArray(userInputs)) {
             const [title, description, people] = userInputs
-            console.log(title, description, people)
+            projectState.addProject(title, description, people)
             this.clearUserInputs()
+            this.titleInputElement.focus()
         }
     }
 
@@ -118,5 +166,5 @@ class ProjectInput {
 }
 
 const projectInput= new ProjectInput()
-const activeProjectsList = new ProjectsList('active')
-const finishedProjectsList = new ProjectsList('finished')
+const activeProjectsList = new ProjectsList(ProjectStatus.ACTIVE)
+const finishedProjectsList = new ProjectsList(ProjectStatus.FINISHED)

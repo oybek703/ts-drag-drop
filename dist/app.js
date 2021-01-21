@@ -33,17 +33,68 @@ function autobind(_, _1, descriptor) {
         }
     };
 }
+var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus["ACTIVE"] = "active";
+    ProjectStatus["FINISHED"] = "finished";
+})(ProjectStatus || (ProjectStatus = {}));
+var Project = /** @class */ (function () {
+    function Project(id, title, description, numberOfPeople, status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.numberOfPeople = numberOfPeople;
+        this.status = status;
+    }
+    return Project;
+}());
+var ProjectState = /** @class */ (function () {
+    function ProjectState() {
+        this.projects = [];
+        this.listeners = [];
+    }
+    ProjectState.getInstance = function () {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectState();
+        return this.instance;
+    };
+    ProjectState.prototype.addProject = function (title, description, numberOfPeople) {
+        this.projects.push(new Project(new Date().getTime(), title, description, numberOfPeople, ProjectStatus.ACTIVE));
+        for (var _i = 0, _a = this.listeners; _i < _a.length; _i++) {
+            var listener = _a[_i];
+            listener(this.projects.slice());
+        }
+    };
+    ProjectState.prototype.addListener = function (listener) {
+        this.listeners.push(listener);
+    };
+    return ProjectState;
+}());
+var projectState = ProjectState.getInstance();
 var ProjectsList = /** @class */ (function () {
     function ProjectsList(type) {
+        var _this = this;
         this.type = type;
+        this.assignedProjects = [];
         this.templateElement = document.getElementById(this.type + "-projects-list");
         this.hostElement = document.getElementById('app');
         var importedNode = document.importNode(this.templateElement.content, true);
         this.element = importedNode.firstElementChild;
         this.attach();
+        projectState.addListener(function (newProjects) {
+            _this.assignedProjects = newProjects.filter(function (p) { return _this.type === p.status; });
+            _this.renderProjects();
+        });
     }
     ProjectsList.prototype.attach = function () {
         this.hostElement.insertAdjacentElement('beforeend', this.element);
+    };
+    ProjectsList.prototype.renderProjects = function () {
+        var _this = this;
+        // this.element.childNodes.forEach((childNode,     i) => i !== 1 && childNode.remove())
+        this.assignedProjects.forEach(function (project) { return _this.element.insertAdjacentHTML('beforeend', "<li class=\"collection-item\">" + project.title + "</li>"); });
     };
     return ProjectsList;
 }());
@@ -67,7 +118,7 @@ var ProjectInput = /** @class */ (function () {
         var descriptionValidateable = { value: descriptionValue, minLength: 5 };
         var peopleValidateable = { value: +peopleValue, min: 1, max: 5 };
         if (!validate(titleValidateable) || !validate(descriptionValidateable) || !validate(peopleValidateable)) {
-            alert('Invalid User Input!');
+            alert('Please fill the form with valid information!');
             return;
         }
         else {
@@ -84,8 +135,9 @@ var ProjectInput = /** @class */ (function () {
         var userInputs = this.getUserInputs();
         if (Array.isArray(userInputs)) {
             var title = userInputs[0], description = userInputs[1], people = userInputs[2];
-            console.log(title, description, people);
+            projectState.addProject(title, description, people);
             this.clearUserInputs();
+            this.titleInputElement.focus();
         }
     };
     ProjectInput.prototype.configure = function () {
@@ -100,6 +152,6 @@ var ProjectInput = /** @class */ (function () {
     return ProjectInput;
 }());
 var projectInput = new ProjectInput();
-var activeProjectsList = new ProjectsList('active');
-var finishedProjectsList = new ProjectsList('finished');
+var activeProjectsList = new ProjectsList(ProjectStatus.ACTIVE);
+var finishedProjectsList = new ProjectsList(ProjectStatus.FINISHED);
 //# sourceMappingURL=app.js.map
