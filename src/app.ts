@@ -106,7 +106,7 @@ class ProjectsList extends Component<HTMLElement, HTMLDivElement>{
 
     private renderProjects() {
         this.element.innerHTML = ''
-        this.element.insertAdjacentHTML('afterbegin', `<li class="collection-header center ${this.type === ProjectStatus.ACTIVE ? 'green' : 'grey'} white-text">${this.type.toUpperCase()} PROJECTS</li>`)
+        this.element.insertAdjacentHTML('afterbegin', `<li class="collection-header center ${this.type === ProjectStatus.ACTIVE ? 'green' : 'grey'} white-text">${this.type.toUpperCase()} PROJECTS</li><br/>`)
         this.assignedProjects.forEach(project => this.element.insertAdjacentHTML('beforeend', `<li class="collection-item">${project.title}</li>`))
     }
 }
