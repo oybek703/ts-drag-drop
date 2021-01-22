@@ -98,7 +98,8 @@ class ProjectsList {
     }
 
     private renderProjects() {
-        // this.element.childNodes.forEach((childNode,     i) => i !== 1 && childNode.remove())
+        this.element.innerHTML = ''
+        this.element.insertAdjacentHTML('afterbegin', `<li class="collection-header center ${this.type === ProjectStatus.ACTIVE ? 'green' : 'grey'} white-text">${this.type.toUpperCase()} PROJECTS</li>`)
         this.assignedProjects.forEach(project => this.element.insertAdjacentHTML('beforeend', `<li class="collection-item">${project.title}</li>`))
     }
 }

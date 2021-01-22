@@ -93,7 +93,8 @@ var ProjectsList = /** @class */ (function () {
     };
     ProjectsList.prototype.renderProjects = function () {
         var _this = this;
-        // this.element.childNodes.forEach((childNode,     i) => i !== 1 && childNode.remove())
+        this.element.innerHTML = '';
+        this.element.insertAdjacentHTML('afterbegin', "<li class=\"collection-header center " + (this.type === ProjectStatus.ACTIVE ? 'green' : 'grey') + " white-text\">" + this.type.toUpperCase() + " PROJECTS</li>");
         this.assignedProjects.forEach(function (project) { return _this.element.insertAdjacentHTML('beforeend', "<li class=\"collection-item\">" + project.title + "</li>"); });
     };
     return ProjectsList;
