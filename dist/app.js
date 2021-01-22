@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -49,17 +62,16 @@ var Project = /** @class */ (function () {
     return Project;
 }());
 var ProjectState = /** @class */ (function () {
-    function ProjectState() {
+    function ProjectState(test) {
         this.projects = [];
         this.listeners = [];
-    }
-    ProjectState.getInstance = function () {
-        if (this.instance) {
+        this.instance = this;
+        if (ProjectState.exists) {
             return this.instance;
         }
-        this.instance = new ProjectState();
-        return this.instance;
-    };
+        this.exists = true;
+        return new ProjectState();
+    }
     ProjectState.prototype.addProject = function (title, description, numberOfPeople) {
         this.projects.push(new Project(new Date().getTime(), title, description, numberOfPeople, ProjectStatus.ACTIVE));
         for (var _i = 0, _a = this.listeners; _i < _a.length; _i++) {
@@ -70,26 +82,40 @@ var ProjectState = /** @class */ (function () {
     ProjectState.prototype.addListener = function (listener) {
         this.listeners.push(listener);
     };
+    ProjectState.exists = false;
     return ProjectState;
 }());
-var projectState = ProjectState.getInstance();
-var ProjectsList = /** @class */ (function () {
-    function ProjectsList(type) {
-        var _this = this;
-        this.type = type;
-        this.assignedProjects = [];
-        this.templateElement = document.getElementById(this.type + "-projects-list");
-        this.hostElement = document.getElementById('app');
+var projectState = new ProjectState('MONGO');
+var projectState1 = new ProjectState('SQL');
+console.log(projectState);
+console.log(projectState1);
+var Component = /** @class */ (function () {
+    function Component(templateId, hostId, afterBegin) {
+        this.afterBegin = afterBegin;
+        this.templateElement = document.getElementById(templateId);
+        this.hostElement = document.getElementById(hostId);
         var importedNode = document.importNode(this.templateElement.content, true);
         this.element = importedNode.firstElementChild;
         this.attach();
+    }
+    Component.prototype.attach = function () { this.hostElement.insertAdjacentElement(this.afterBegin ? 'afterbegin' : 'beforeend', this.element); };
+    return Component;
+}());
+var ProjectsList = /** @class */ (function (_super) {
+    __extends(ProjectsList, _super);
+    function ProjectsList(type) {
+        var _this = _super.call(this, type + "-projects-list", 'app', false) || this;
+        _this.type = type;
+        _this.assignedProjects = [];
+        _this.configure();
+        return _this;
+    }
+    ProjectsList.prototype.configure = function () {
+        var _this = this;
         projectState.addListener(function (newProjects) {
             _this.assignedProjects = newProjects.filter(function (p) { return _this.type === p.status; });
             _this.renderProjects();
         });
-    }
-    ProjectsList.prototype.attach = function () {
-        this.hostElement.insertAdjacentElement('beforeend', this.element);
     };
     ProjectsList.prototype.renderProjects = function () {
         var _this = this;
@@ -98,18 +124,16 @@ var ProjectsList = /** @class */ (function () {
         this.assignedProjects.forEach(function (project) { return _this.element.insertAdjacentHTML('beforeend', "<li class=\"collection-item\">" + project.title + "</li>"); });
     };
     return ProjectsList;
-}());
-var ProjectInput = /** @class */ (function () {
+}(Component));
+var ProjectInput = /** @class */ (function (_super) {
+    __extends(ProjectInput, _super);
     function ProjectInput() {
-        this.templateElement = document.getElementById('project-form');
-        this.hostElement = document.getElementById('app');
-        var importNode = document.importNode(this.templateElement.content, true);
-        this.element = importNode.firstElementChild;
-        this.titleInputElement = this.element.querySelector('#title');
-        this.descriptionInputElement = this.element.querySelector('#description');
-        this.peopleInputElement = this.element.querySelector('#people');
-        this.attach();
-        this.configure();
+        var _this = _super.call(this, 'project-form', 'app', true) || this;
+        _this.titleInputElement = _this.element.querySelector('#title');
+        _this.descriptionInputElement = _this.element.querySelector('#description');
+        _this.peopleInputElement = _this.element.querySelector('#people');
+        _this.configure();
+        return _this;
     }
     ProjectInput.prototype.getUserInputs = function () {
         var titleValue = this.titleInputElement.value;
@@ -144,14 +168,11 @@ var ProjectInput = /** @class */ (function () {
     ProjectInput.prototype.configure = function () {
         this.element.addEventListener('submit', this.submitHandler);
     };
-    ProjectInput.prototype.attach = function () {
-        this.hostElement.insertAdjacentElement('afterbegin', this.element);
-    };
     __decorate([
         autobind
     ], ProjectInput.prototype, "submitHandler", null);
     return ProjectInput;
-}());
+}(Component));
 var projectInput = new ProjectInput();
 var activeProjectsList = new ProjectsList(ProjectStatus.ACTIVE);
 var finishedProjectsList = new ProjectsList(ProjectStatus.FINISHED);

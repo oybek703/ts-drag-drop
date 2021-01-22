@@ -49,16 +49,14 @@ type Listener = (projects: Project[]) => void
 class ProjectState {
     private projects: Project[] = []
     private listeners: Listener[] = []
-    private static instance: ProjectState
-
-    constructor() {}
-
-    static getInstance() {
-        if(this.instance) {
+    readonly instance: ProjectState = this
+    static readonly exists: boolean = false
+    constructor(test?: string) {
+        if(ProjectState.exists) {
             return this.instance
         }
-        this.instance = new ProjectState()
-        return this.instance
+        this.exists = true
+        return new ProjectState()
     }
 
     addProject(title: string, description: string, numberOfPeople: number) {
@@ -73,28 +71,40 @@ class ProjectState {
     }
 }
 
-const projectState = ProjectState.getInstance()
+const projectState = new ProjectState('MONGO')
+const projectState1 = new ProjectState( 'SQL')
+console.log(projectState)
+console.log(projectState1)
 
-class ProjectsList {
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     templateElement: HTMLTemplateElement
-    hostElement: HTMLDivElement
-    element: HTMLElement
+    hostElement: U
+    element: T
+
+    protected constructor(templateId: string, hostId: string, public afterBegin: boolean) {
+        this.templateElement = document.getElementById(templateId) as HTMLTemplateElement
+        this.hostElement = document.getElementById(hostId) as U
+        const importedNode = document.importNode(this.templateElement.content, true)
+        this.element = importedNode.firstElementChild as T
+        this.attach()
+    }
+    protected attach() {this.hostElement.insertAdjacentElement(this.afterBegin ? 'afterbegin' : 'beforeend', this.element)}
+    abstract configure(): void
+}
+
+class ProjectsList extends Component<HTMLElement, HTMLDivElement>{
     assignedProjects: Project[] = []
 
     constructor(private type: ProjectStatus.ACTIVE | ProjectStatus.FINISHED) {
-        this.templateElement = document.getElementById(`${this.type}-projects-list`) as HTMLTemplateElement
-        this.hostElement = document.getElementById('app') as HTMLDivElement
-        const importedNode = document.importNode(this.templateElement.content, true)
-        this.element = importedNode.firstElementChild as HTMLElement
-        this.attach()
+        super(`${type}-projects-list`, 'app', false)
+        this.configure()
+    }
+
+    configure() {
         projectState.addListener((newProjects: Project[]) => {
             this.assignedProjects = newProjects.filter(p => this.type === p.status)
             this.renderProjects()
         })
-    }
-
-    private attach() {
-        this.hostElement.insertAdjacentElement('beforeend', this.element)
     }
 
     private renderProjects() {
@@ -104,23 +114,16 @@ class ProjectsList {
     }
 }
 
-class ProjectInput {
-    templateElement: HTMLTemplateElement
-    hostElement: HTMLDivElement
-    element: HTMLFormElement
+class ProjectInput extends Component<HTMLFormElement, HTMLDivElement>{
     titleInputElement: HTMLInputElement
     descriptionInputElement: HTMLInputElement
     peopleInputElement: HTMLInputElement
 
     constructor() {
-        this.templateElement = document.getElementById('project-form') as HTMLTemplateElement
-        this.hostElement = document.getElementById('app') as HTMLDivElement
-        const importNode = document.importNode(this.templateElement.content, true)
-        this.element = importNode.firstElementChild as HTMLFormElement
+        super('project-form', 'app', true)
         this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement
         this.descriptionInputElement = this.element.querySelector('#description') as HTMLInputElement
         this.peopleInputElement = this.element.querySelector('#people') as HTMLInputElement
-        this.attach()
         this.configure()
     }
 
@@ -157,13 +160,10 @@ class ProjectInput {
         }
     }
 
-    private configure() {
+    configure() {
         this.element.addEventListener('submit', this.submitHandler)
     }
 
-    private attach() {
-        this.hostElement.insertAdjacentElement('afterbegin', this.element)
-    }
 }
 
 const projectInput= new ProjectInput()
