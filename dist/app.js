@@ -62,15 +62,14 @@ var Project = /** @class */ (function () {
     return Project;
 }());
 var ProjectState = /** @class */ (function () {
-    function ProjectState(test) {
+    function ProjectState() {
         this.projects = [];
         this.listeners = [];
-        this.instance = this;
         if (ProjectState.exists) {
-            return this.instance;
+            return ProjectState.instance;
         }
-        this.exists = true;
-        return new ProjectState();
+        ProjectState.instance = this;
+        ProjectState.exists = true;
     }
     ProjectState.prototype.addProject = function (title, description, numberOfPeople) {
         this.projects.push(new Project(new Date().getTime(), title, description, numberOfPeople, ProjectStatus.ACTIVE));
@@ -82,13 +81,9 @@ var ProjectState = /** @class */ (function () {
     ProjectState.prototype.addListener = function (listener) {
         this.listeners.push(listener);
     };
-    ProjectState.exists = false;
     return ProjectState;
 }());
-var projectState = new ProjectState('MONGO');
-var projectState1 = new ProjectState('SQL');
-console.log(projectState);
-console.log(projectState1);
+var projectState = new ProjectState();
 var Component = /** @class */ (function () {
     function Component(templateId, hostId, afterBegin) {
         this.afterBegin = afterBegin;

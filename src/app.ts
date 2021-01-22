@@ -49,14 +49,14 @@ type Listener = (projects: Project[]) => void
 class ProjectState {
     private projects: Project[] = []
     private listeners: Listener[] = []
-    readonly instance: ProjectState = this
-    static readonly exists: boolean = false
-    constructor(test?: string) {
+    static instance: ProjectState
+    static exists: boolean
+    constructor() {
         if(ProjectState.exists) {
-            return this.instance
+            return ProjectState.instance
         }
-        this.exists = true
-        return new ProjectState()
+        ProjectState.instance = this
+        ProjectState.exists = true
     }
 
     addProject(title: string, description: string, numberOfPeople: number) {
@@ -71,10 +71,7 @@ class ProjectState {
     }
 }
 
-const projectState = new ProjectState('MONGO')
-const projectState1 = new ProjectState( 'SQL')
-console.log(projectState)
-console.log(projectState1)
+const projectState = new ProjectState()
 
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     templateElement: HTMLTemplateElement
