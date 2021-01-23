@@ -1,4 +1,11 @@
 
+interface DragTarget {
+    dragEnter(event: DragEvent): void
+    dragOver(event: DragEvent): void
+    dragLeave(event: DragEvent): void
+    drop(event: DragEvent): void
+}
+
 interface Validateable {
     value: string | number
     required?: boolean
@@ -61,8 +68,20 @@ class ProjectState {
 
     addProject(title: string, description: string, numberOfPeople: number) {
         this.projects.push(new Project(new Date().getTime(), title, description, numberOfPeople, ProjectStatus.ACTIVE))
+        this.updateListeners()
+    }
+
+    private updateListeners() {
         for (const listener of this.listeners) {
             listener(this.projects.slice())
+        }
+    }
+
+    moveProject(projectId: number, newStatus: ProjectStatus) {
+        const project = this.projects.find(p => p.id === projectId)
+        if(project && newStatus !== project.status) {
+            project.status = newStatus
+            this.updateListeners()
         }
     }
 
@@ -89,7 +108,7 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     abstract configure(): void
 }
 
-class ProjectsList extends Component<HTMLElement, HTMLDivElement>{
+class ProjectsList extends Component<HTMLElement, HTMLDivElement> implements DragTarget{
     assignedProjects: Project[] = []
 
     constructor(private type: ProjectStatus.ACTIVE | ProjectStatus.FINISHED) {
@@ -102,12 +121,55 @@ class ProjectsList extends Component<HTMLElement, HTMLDivElement>{
             this.assignedProjects = newProjects.filter(p => this.type === p.status)
             this.renderProjects()
         })
+        this.element.addEventListener('dragenter', this.dragEnter)
+        this.element.addEventListener('dragover', this.dragOver)
+        this.element.addEventListener('dragleave', this.dragLeave)
+        this.element.addEventListener('drop', this.drop)
+    }
+
+    @autobind
+    dragEnter(event: DragEvent) {
+        event.preventDefault()
+        this.element.classList.add('draggable')
+    }
+
+    @autobind
+    dragOver(event: DragEvent) {
+        event.preventDefault()
+        this.element.classList.add('draggable')
+    }
+
+    @autobind
+    dragLeave(event: DragEvent) {
+        this.element.classList.remove('draggable')
+    }
+
+    @autobind
+    drop(event: DragEvent) {
+        const id = event.dataTransfer!.getData('text/plain')
+        projectState.moveProject(+id, this.type === ProjectStatus.ACTIVE ? ProjectStatus.ACTIVE: ProjectStatus.FINISHED)
+        this.element.classList.remove('draggable')
     }
 
     private renderProjects() {
         this.element.innerHTML = ''
-        this.element.insertAdjacentHTML('afterbegin', `<li class="collection-header center ${this.type === ProjectStatus.ACTIVE ? 'green' : 'grey'} white-text">${this.type.toUpperCase()} PROJECTS</li><br/>`)
-        this.assignedProjects.forEach(project => this.element.insertAdjacentHTML('beforeend', `<li class="collection-item">${project.title}</li>`))
+        this.element.insertAdjacentHTML('afterbegin', `<li class="collection-header center ${this.type === ProjectStatus.ACTIVE ? 'green' : 'grey'} white-text">${this.type.toUpperCase()} PROJECTS</li>`)
+        this.assignedProjects.forEach(project => {
+            this.element.insertAdjacentHTML('beforeend', `<li draggable="true" class="collection-item avatar" id="${project.id}">
+                    <h5 class="red-text">${project.title}</h5>
+                    <p>${project.numberOfPeople} assigned <br>
+                    ${project.description}
+                    </p>
+                </li>`)
+            const currentElement = document.getElementById(project.id.toString())!
+            currentElement.addEventListener('dragstart', event => {
+                event.dataTransfer!.setData('text/plain', currentElement.id)
+                setTimeout(() => {
+                    currentElement.classList.add('hide')
+                }, 0)
+            })
+            currentElement.addEventListener('dragend', event => {currentElement.classList.remove('hide')})
+        })
     }
 }
 
@@ -163,6 +225,6 @@ class ProjectInput extends Component<HTMLFormElement, HTMLDivElement>{
 
 }
 
-const projectInput= new ProjectInput()
+const projectInput = new ProjectInput()
 const activeProjectsList = new ProjectsList(ProjectStatus.ACTIVE)
 const finishedProjectsList = new ProjectsList(ProjectStatus.FINISHED)
